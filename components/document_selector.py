@@ -26,7 +26,6 @@ def render_document_selector():
         else:
             # Selectbox con todos los documentos
             document_options = [f"{doc['name'][:70]}..." for doc in documents]
-             #document_options = [f"{doc['name'][:70]}... ({doc.get('relevance', '100%')})" for doc in documents]
             # La clave del selectbox ahora usa st.session_state.selector_key
             selected_option = st.selectbox(
                 "Seleccione un documento para agregar:",
@@ -40,14 +39,18 @@ def render_document_selector():
                 selected_index = document_options.index(selected_option)
                 selected_doc = documents[selected_index]
                 
-                # Intentar agregar el documento
-                if add_document(selected_doc):
-                    st.success(f"✅ Documento agregado: {selected_doc['name'][:50]}...")
-                    st.rerun()  # Forzar actualización de la UI
+                # Verificar que el documento tenga un ID antes de agregarlo
+                if 'id' not in selected_doc:
+                    st.error(f"Error: El documento no tiene ID. Estructura: {list(selected_doc.keys())}")
                 else:
-                    # Documento ya está seleccionado
-                    if st.session_state.last_attempted_document == selected_doc['id']:
-                        st.warning("⚠️ Este documento ya está seleccionado")
+                    # Intentar agregar el documento
+                    if add_document(selected_doc):
+                        st.success(f"✅ Documento agregado: {selected_doc['name'][:50]}...")
+                        st.rerun()  # Forzar actualización de la UI
+                    else:
+                        # Documento ya está seleccionado
+                        if 'id' in selected_doc and st.session_state.last_attempted_document == selected_doc['id']:
+                            st.warning("⚠️ Este documento ya está seleccionado")
 
     with col2:
         st.markdown('<div class="section-title">Documentos Seleccionados</div>', unsafe_allow_html=True)

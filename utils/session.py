@@ -61,8 +61,13 @@ def add_document(document: Dict[str, Any]) -> bool:
     Returns:
         bool: True si se añadió correctamente, False si ya existía
     """
+    # Verificar que el documento tenga un ID
+    if 'id' not in document:
+        st.error(f"Error: El documento no tiene campo 'id'. Campos disponibles: {list(document.keys())}")
+        return False
+    
     # Verificar si ya está seleccionado
-    is_already_selected = document['id'] in [d['id'] for d in st.session_state.selected_documents]
+    is_already_selected = document['id'] in [d.get('id', '') for d in st.session_state.selected_documents]
     
     if not is_already_selected:
         # Documento no está seleccionado, agregarlo

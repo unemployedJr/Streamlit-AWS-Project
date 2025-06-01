@@ -4,6 +4,7 @@ import json
 import time
 import re
 from typing import Dict, Any, List, Optional, Tuple
+from urllib.parse import urlencode, quote
 
 class DocumentAnalysisAPI:
     """
@@ -29,6 +30,12 @@ class DocumentAnalysisAPI:
         
         # Configuración de timeout
         self.timeout = st.secrets["api"].get("timeout_seconds", 30)
+        
+    def _log(self, message):
+        """Agrega un mensaje al log de debug en session state"""
+        if 'debug_logs' not in st.session_state:
+            st.session_state.debug_logs = []
+        st.session_state.debug_logs.append(f"{time.strftime('%H:%M:%S')} - {message}")
     
     def get_token(self) -> Optional[str]:
         """
@@ -41,10 +48,13 @@ class DocumentAnalysisAPI:
         # Verificar si ya tenemos un token válido (con margen de 5 minutos)
         current_time = time.time()
         if self.token and current_time < (self.token_expiry - 300):
+            self._log("Token existente válido, reutilizando")
             return self.token
         
         # Si no hay token o está a punto de expirar, obtener uno nuevo
         try:
+            self._log(f"Solicitando nuevo token a: {self.auth_url}")
+            
             # Preparar payload para la solicitud de token
             payload = {
                 "grant_type": "client_credentials",
@@ -52,14 +62,17 @@ class DocumentAnalysisAPI:
                 "client_id": self.client_id,
                 "client_secret": self.client_secret
             }
+            payload=urlencode(payload, quote_via = quote)
             
             # Hacer la solicitud para obtener el token
-            response = requests.post(
+            response = requests.request('POST',
                 self.auth_url,
-                data=payload,
                 headers={"Content-Type": "application/x-www-form-urlencoded"},
+                data=payload,
                 timeout=self.timeout
             )
+            
+            self._log(f"Respuesta de autenticación: {response.status_code}")
             
             # Verificar si la solicitud fue exitosa
             if response.status_code == 200:
@@ -70,12 +83,15 @@ class DocumentAnalysisAPI:
                 expires_in = token_data.get("expires_in", 3600)  # Default 1 hora
                 self.token_expiry = current_time + expires_in
                 
+                self._log(f"Token obtenido exitosamente, expira en {expires_in} segundos")
                 return self.token
             else:
+                self._log(f"Error al obtener token: {response.status_code} - {response.text[:200]}")
                 st.error(f"Error al obtener token: {response.status_code} - {response.text}")
                 return None
                 
         except Exception as e:
+            self._log(f"Excepción en get_token: {type(e).__name__} - {str(e)}")
             st.error(f"Error en la autenticación: {str(e)}")
             return None
     
@@ -86,11 +102,16 @@ class DocumentAnalysisAPI:
         Returns:
             List[Dict]: Lista de documentos con id y nombre
         """
+        self._log("=== INICIANDO get_documents() ===")
+        
         # Obtener token de acceso
         token = self.get_token()
         if not token:
+            self._log("No se pudo obtener token, abortando")
             st.error("No se pudo obtener el token de autenticación.")
             return []
+        
+        self._log(f"Token obtenido: {token[:20]}...")
         
         try:
             # Configurar headers con el token Bearer
@@ -98,41 +119,61 @@ class DocumentAnalysisAPI:
                 "Authorization": f"Bearer {token}"
             }
             
+            self._log(f"Realizando GET a: {self.documents_url}")
+            
             # Realizar la solicitud GET al API
-            response = requests.get(
+            response = requests.request('GET',
                 self.documents_url,
                 headers=headers,
                 timeout=self.timeout
             )
             
+            self._log(f"Código de respuesta: {response.status_code}")
+            
             # Verificar si la solicitud fue exitosa
             if response.status_code == 200:
                 documents_data = response.json()
+                self._log(f"Documentos recibidos: {len(documents_data)}")
+                
+                if documents_data:
+                    first_doc = documents_data[0]
+                    self._log(f"Estructura del primer documento: {list(first_doc.keys())}")
+                    self._log(f"Primer documento: {json.dumps(first_doc, indent=2)[:200]}...")
                 
                 # Procesar los documentos recibidos
                 processed_documents = []
-                for doc in documents_data:
-                    # Extraer NUM_INTERNO_DOC y NOMBRE_DOCUMENTO
-                    #doc_id = doc.get("NUM_INTERNO_DOC", "")
+                for i, doc in enumerate(documents_data):
+                    # Usar NUM_INTERNO_DOC como ID principal
+                    doc_id = doc.get("NUM_INTERNO_DOC", "")
                     doc_name = doc.get("NOMBRE_DOCUMENTO", "")
                     
-                    # Extraer el número del documento del nombre (según las imágenes)
-                    # Ejemplo: "2020029582 - RSASCM 074 ICCGSA.docx"
+                    if i < 3:  # Log primeros 3 documentos
+                        self._log(f"Doc {i}: ID={doc_id}, NOMBRE={doc_name[:50]}...")
+                    
+                    # Extraer el número del documento del nombre para el campo "number"
                     doc_number = self._extract_document_number(doc_name)
                     
+                    # Si por alguna razón no hay NUM_INTERNO_DOC, usar el número extraído
+                    if not doc_id:
+                        doc_id = doc_number if doc_number else f"doc_{len(processed_documents)}"
+                        self._log(f"Doc {i}: Sin NUM_INTERNO_DOC, usando ID alternativo: {doc_id}")
+                    
                     processed_documents.append({
-                        #"id": doc_id,
+                        "id": doc_id,
                         "name": doc_name,
                         "number": doc_number,
-                        #"relevance": "100%"  # Valor por defecto, ajustar según necesidad
                     })
                 
+                self._log(f"Total documentos procesados: {len(processed_documents)}")
+                self._log("=== FIN get_documents() - ÉXITO ===")
                 return processed_documents
             else:
+                self._log(f"Error HTTP: {response.status_code} - {response.text[:200]}")
                 st.error(f"Error al obtener documentos: {response.status_code} - {response.text}")
                 return []
                 
         except Exception as e:
+            self._log(f"Excepción en get_documents: {type(e).__name__} - {str(e)}")
             st.error(f"Error al obtener documentos: {str(e)}")
             return []
     
@@ -182,7 +223,7 @@ class DocumentAnalysisAPI:
             }
             
             # Realizar la solicitud POST al API
-            response = requests.post(
+            response = requests.request('POST',
                 self.generate_url,
                 json=payload,
                 headers=headers,
@@ -286,19 +327,29 @@ def load_available_documents():
     Returns:
         List[Dict]: Lista de documentos disponibles
     """
+    # Agregar log
+    if 'debug_logs' not in st.session_state:
+        st.session_state.debug_logs = []
+    st.session_state.debug_logs.append(f"{time.strftime('%H:%M:%S')} - load_available_documents() llamado")
+    
     # Verificar si ya tenemos documentos cargados
     if 'available_documents' in st.session_state and st.session_state.available_documents:
+        st.session_state.debug_logs.append(f"{time.strftime('%H:%M:%S')} - Documentos ya en caché: {len(st.session_state.available_documents)}")
         return st.session_state.available_documents
     
     # Obtener documentos del API
+    st.session_state.debug_logs.append(f"{time.strftime('%H:%M:%S')} - Solicitando documentos del API...")
+    
     with st.spinner("Cargando documentos disponibles..."):
         api_client = st.session_state.api_client
         documents = api_client.get_documents()
         
         if documents:
             st.session_state.available_documents = documents
+            st.session_state.debug_logs.append(f"{time.strftime('%H:%M:%S')} - Documentos cargados exitosamente: {len(documents)}")
             return documents
         else:
+            st.session_state.debug_logs.append(f"{time.strftime('%H:%M:%S')} - No se obtuvieron documentos del API")
             st.warning("No se pudieron cargar los documentos. Verifique su conexión.")
             return []
 

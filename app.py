@@ -2,19 +2,19 @@ import streamlit as st
 import json
 import time
 
+# Configuración de la página - DEBE SER LO PRIMERO
+st.set_page_config(
+    page_title="Centro de análisis documentario",
+    layout="wide",
+    page_icon="📑"
+)
+
 # Importar componentes y utilidades
 from components.header import render_header
 from components.document_selector import render_document_selector
 from components.analysis_cards import render_analysis_cards
 from utils.session import initialize_session_state, update_analysis_state, clear_selection
 from utils.rest_api import initialize_api_client, load_available_documents, analyze_selected_documents
-
-# Configuración de la página
-st.set_page_config(
-    page_title="Centro de análisis documentario",
-    layout="wide",
-    page_icon="📑"
-)
 
 # Inicializar estado de la sesión
 initialize_session_state()
@@ -29,6 +29,35 @@ if 'available_documents' not in st.session_state:
 
 # Renderizar encabezado
 render_header()
+
+# SECCIÓN DE DEBUG - TEMPORAL
+with st.sidebar:
+    st.markdown("### 🐛 Debug Info")
+    if st.button("🔄 Limpiar Logs"):
+        st.session_state.debug_logs = []
+        st.rerun()
+    
+    if 'debug_logs' in st.session_state and st.session_state.debug_logs:
+        st.text_area("Logs de Debug:", 
+                     value="\n".join(st.session_state.debug_logs[-20:]),  # Últimos 20 logs
+                     height=300)
+    else:
+        st.info("No hay logs de debug")
+    
+    st.markdown("### 📊 Estado")
+    available_docs = st.session_state.get('available_documents', [])
+    if available_docs is None:
+        st.write("Documentos disponibles: No cargados")
+    else:
+        st.write(f"Documentos disponibles: {len(available_docs)}")
+    
+    selected_docs = st.session_state.get('selected_documents', [])
+    st.write(f"Documentos seleccionados: {len(selected_docs)}")
+    
+    if st.button("🔄 Recargar Documentos"):
+        if 'available_documents' in st.session_state:
+            del st.session_state.available_documents
+        st.rerun()
 
 # Renderizar selector de documentos
 selected_documents = render_document_selector()
