@@ -4,6 +4,7 @@ import json
 import time
 import re
 from typing import Dict, Any, List, Optional, Tuple
+from urllib.parse import urlencode, quote
 
 class DocumentAnalysisAPI:
     """
@@ -52,12 +53,12 @@ class DocumentAnalysisAPI:
                 "client_id": self.client_id,
                 "client_secret": self.client_secret
             }
-            
+            payload=urlencode(payload,quote_via=quote)
             # Hacer la solicitud para obtener el token
             response = requests.post(
                 self.auth_url,
-                data=payload,
                 headers={"Content-Type": "application/x-www-form-urlencoded"},
+                data=payload,
                 timeout=self.timeout
             )
             
@@ -113,15 +114,12 @@ class DocumentAnalysisAPI:
                 processed_documents = []
                 for doc in documents_data:
                     # Extraer NUM_INTERNO_DOC y NOMBRE_DOCUMENTO
-                    #doc_id = doc.get("NUM_INTERNO_DOC", "")
                     doc_name = doc.get("NOMBRE_DOCUMENTO", "")
-                    
-                    # Extraer el número del documento del nombre (según las imágenes)
                     # Ejemplo: "2020029582 - RSASCM 074 ICCGSA.docx"
                     doc_number = self._extract_document_number(doc_name)
-                    
+                    doc_id = self._extract_document_number(doc_name)
                     processed_documents.append({
-                        #"id": doc_id,
+                        "id": doc_id,
                         "name": doc_name,
                         "number": doc_number,
                         #"relevance": "100%"  # Valor por defecto, ajustar según necesidad
