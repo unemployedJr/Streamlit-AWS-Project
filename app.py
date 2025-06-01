@@ -9,6 +9,32 @@ st.set_page_config(
     page_icon="📑"
 )
 
+# CSS personalizado para mejorar la apariencia
+st.markdown("""
+<style>
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #1f77b4;
+        margin-bottom: 1rem;
+    }
+    .selected-docs-container {
+        background-color: #f0f2f6;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        min-height: 150px;
+    }
+    .selected-doc-tag {
+        background-color: #1f77b4;
+        color: white;
+        padding: 0.3rem 0.6rem;
+        border-radius: 0.3rem;
+        margin: 0.2rem;
+        display: inline-block;
+    }
+</style>
+""", unsafe_allow_html=True)
+
 # Importar componentes y utilidades
 from components.header import render_header
 from components.document_selector import render_document_selector
@@ -22,42 +48,13 @@ initialize_session_state()
 # Inicializar cliente de API
 initialize_api_client()
 
-# Cargar documentos disponibles (solo si no están ya cargados)
-if 'available_documents' not in st.session_state:
+# Cargar documentos disponibles (solo si no están ya cargados o son None)
+if 'available_documents' not in st.session_state or st.session_state.available_documents is None or len(st.session_state.available_documents) == 0:
     with st.spinner("Cargando documentos disponibles..."):
         documents = load_available_documents()
 
 # Renderizar encabezado
 render_header()
-
-# SECCIÓN DE DEBUG - TEMPORAL
-with st.sidebar:
-    st.markdown("### 🐛 Debug Info")
-    if st.button("🔄 Limpiar Logs"):
-        st.session_state.debug_logs = []
-        st.rerun()
-    
-    if 'debug_logs' in st.session_state and st.session_state.debug_logs:
-        st.text_area("Logs de Debug:", 
-                     value="\n".join(st.session_state.debug_logs[-20:]),  # Últimos 20 logs
-                     height=300)
-    else:
-        st.info("No hay logs de debug")
-    
-    st.markdown("### 📊 Estado")
-    available_docs = st.session_state.get('available_documents', [])
-    if available_docs is None:
-        st.write("Documentos disponibles: No cargados")
-    else:
-        st.write(f"Documentos disponibles: {len(available_docs)}")
-    
-    selected_docs = st.session_state.get('selected_documents', [])
-    st.write(f"Documentos seleccionados: {len(selected_docs)}")
-    
-    if st.button("🔄 Recargar Documentos"):
-        if 'available_documents' in st.session_state:
-            del st.session_state.available_documents
-        st.rerun()
 
 # Renderizar selector de documentos
 selected_documents = render_document_selector()
