@@ -15,6 +15,7 @@ from components.document_selector import render_document_selector
 from components.analysis_cards import render_analysis_cards
 from utils.session import initialize_session_state, update_analysis_state, clear_selection
 from utils.rest_api import initialize_api_client, load_available_documents, analyze_selected_documents
+from utils.pdf_generator import create_download_button
 
 # Inicializar estado de la sesión
 initialize_session_state()
@@ -69,7 +70,6 @@ if generate_clicked and selected_documents:
             
             # Guardar resultados
             st.session_state.api_results = results
-          #  st.success("¡Análisis completado con éxito!")
         else:
             # Actualizar estado a "error"
             update_analysis_state({
@@ -85,12 +85,17 @@ if generate_clicked and selected_documents:
 if st.session_state.api_results and st.session_state.analysis_state["status"] == "complete":
     st.markdown("---")
     render_analysis_cards(st.session_state.api_results)
-
-# Botón para reiniciar (limpiar selección)
-if st.session_state.api_results:
+    
+    # Botones de acción
     st.markdown("---")
-    col1, col2, col3 = st.columns([2, 1, 2])
-    with col2:
+    col1, col2, col3 = st.columns([1, 1, 1])
+    
+    with col1:
+        # Botón para descargar PDF
+        create_download_button(st.session_state.api_results, selected_documents)
+    
+    with col3:
+        # Botón para nuevo análisis
         if st.button("Nuevo Análisis", type="secondary"):
             clear_selection()
             st.session_state.api_results = None

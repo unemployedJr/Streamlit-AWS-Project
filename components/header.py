@@ -64,17 +64,6 @@ def render_header():
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
         
-        .selected-docs-container {
-            background-color: #EBF5FB;
-            border: 2px solid var(--secondary-blue);
-            border-radius: 8px;
-            padding: 1.2rem;
-            margin: 1rem 0;
-            min-height: 120px;
-            max-height: 200px;
-            overflow-y: auto;
-        }
-        
         .selected-doc-tag {
             background-color: var(--secondary-blue);
             color: white;
