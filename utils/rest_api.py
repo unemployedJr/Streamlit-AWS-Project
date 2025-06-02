@@ -115,9 +115,9 @@ class DocumentAnalysisAPI:
                 processed_documents = []
                 for doc in documents_data:
                     # Usar NUM_INTERNO_DOC como ID principal
-                    doc_id = doc.get("NUM_INTERNO_DOC", "")
+                    #doc_id = doc.get("NUM_INTERNO_DOC", "")
                     doc_name = doc.get("NOMBRE_DOCUMENTO", "")
-                    
+                    doc_id = self._extract_document_number(doc_name)
                     # Extraer el número del documento del nombre para el campo "number"
                     doc_number = self._extract_document_number(doc_name)
                     
@@ -175,9 +175,9 @@ class DocumentAnalysisAPI:
         
         try:
             # Preparar payload para la solicitud
-            payload = {
+            payload = json.dumps({
                 "document_numbers": document_numbers
-            }
+            })
             
             # Configurar headers con el token Bearer
             headers = {
@@ -188,7 +188,7 @@ class DocumentAnalysisAPI:
             # Realizar la solicitud POST al API
             response = requests.request('POST',
                 self.generate_url,
-                json=payload,
+                data=payload,
                 headers=headers,
                 timeout=self.timeout
             )
@@ -230,8 +230,10 @@ class DocumentAnalysisAPI:
         # Inicializar estructura de resultados procesados
         processed_results = {
             "introduction": "",
-            "context": "",
-            "main_content": "",
+            "contexto": "",
+            "resumenes_ejecutivos":"",
+            "analisis_detallado":"",
+            "comparacion_documentos":"",
             "conclusion": ""
         }
         
@@ -248,20 +250,36 @@ class DocumentAnalysisAPI:
                 processed_results["introduction"] = "\n\n".join(intro_texts)
             
             # Procesar contexto (si existe)
-            if "context" in sections and len(sections["context"]) > 0:
+            if "contexto" in sections and len(sections["contexto"]) > 0:
                 context_texts = []
-                for context_item in sections["context"]:
+                for context_item in sections["contexto"]:
                     if "text" in context_item:
                         context_texts.append(context_item["text"])
-                processed_results["context"] = "\n\n".join(context_texts)
+                processed_results["contexto"] = "\n\n".join(context_texts)
             
             # Procesar contenido principal (si existe)
-            if "main_content" in sections and len(sections["main_content"]) > 0:
+            if "resumenes_ejecutivos" in sections and len(sections["resumenes_ejecutivos"]) > 0:
                 main_texts = []
-                for main_item in sections["main_content"]:
+                for main_item in sections["resumenes_ejecutivos"]:
                     if "text" in main_item:
                         main_texts.append(main_item["text"])
-                processed_results["main_content"] = "\n\n".join(main_texts)
+                processed_results["resumenes_ejecutivos"] = "\n\n".join(main_texts)
+
+                     # Procesar contenido principal (si existe)
+            if "analisis_detallado" in sections and len(sections["analisis_detallado"]) > 0:
+                main_texts = []
+                for main_item in sections["analisis_detallado"]:
+                    if "text" in main_item:
+                        main_texts.append(main_item["text"])
+                processed_results["analisis_detallado"] = "\n\n".join(main_texts)
+
+                     # Procesar contenido principal (si existe)
+            if "comparacion_documentos" in sections and len(sections["comparacion_documentos"]) > 0:
+                main_texts = []
+                for main_item in sections["comparacion_documentos"]:
+                    if "text" in main_item:
+                        main_texts.append(main_item["text"])
+                processed_results["comparacion_documentos"] = "\n\n".join(main_texts)
             
             # Procesar conclusión (si existe)
             if "conclusion" in sections and len(sections["conclusion"]) > 0:

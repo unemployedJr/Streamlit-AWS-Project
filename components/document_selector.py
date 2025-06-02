@@ -72,10 +72,10 @@ def render_document_selector():
             # Mostrar una preview de qué tipos de análisis se pueden hacer
             with st.expander("ℹ️ Tipos de análisis disponibles"):
                 st.write("""
-                **Introducción**: Contexto general de los documentos seleccionados
+                **Introducción**: Exposición y relevancia de los documentos
                 
                 **Contenido Principal**: Análisis detallado de las disposiciones normativas
-                
+        
                 **Contexto**: Marco temporal y regulatorio de los documentos
                 
                 **Conclusión**: Recomendaciones y síntesis del análisis

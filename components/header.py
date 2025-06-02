@@ -232,9 +232,9 @@ def render_header():
     st.markdown('<div class="main-header">CENTRO DE ANÁLISIS DOCUMENTARIO</div>', unsafe_allow_html=True)
     
     # Descripción
-    st.markdown("""
-    <p style="text-align: center; color: var(--text-light); font-family: 'Inter', sans-serif; font-size: 1.1rem; margin-top: -1.5rem;">
-    Esta herramienta le permite analizar documentos regulatorios utilizando inteligencia artificial.
-    Seleccione los documentos relevantes y genere un análisis completo.
-    </p>
-    """, unsafe_allow_html=True)
+    #st.markdown("""
+    #<p style="text-align: center; color: var(--text-light); font-family: 'Inter', sans-serif; font-size: 1.1rem; margin-top: -1.5rem;">
+    #Esta herramienta le permite analizar documentos regulatorios utilizando inteligencia artificial.
+    #Seleccione los documentos relevantes y genere un análisis completo.
+    #</p>
+    #""", unsafe_allow_html=True)

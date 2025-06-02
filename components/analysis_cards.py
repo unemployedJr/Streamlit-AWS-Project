@@ -24,22 +24,40 @@ def render_analysis_cards(results: Dict[str, Any]):
         </div>
         """, unsafe_allow_html=True)
         
-        # Contenido Principal
-        main_content = results.get("main_content", "No hay contenido principal disponible.")
+        # Resumenes ejecutivos
+        resumenes_ejecutivos = results.get("resumenes_ejecutivos", "No hay contenido principal disponible.")
         st.markdown(f"""
         <div class="section-card">
             <div class="section-header">Contenido Principal</div>
-            <div class="content-text">{main_content}</div>
+            <div class="content-text">{resumenes_ejecutivos}</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+         # Comparacion_documentos
+        comparacion_documentos = results.get("comparacion_documentos", "No hay contenido principal disponible.")
+        st.markdown(f"""
+        <div class="section-card">
+            <div class="section-header">Contenido Principal</div>
+            <div class="content-text">{comparacion_documentos}</div>
         </div>
         """, unsafe_allow_html=True)
     
     with col2:
         # Contexto
-        context_content = results.get("context", "No hay información de contexto disponible.")
+        context_content = results.get("contexto", "No hay información de contexto disponible.")
         st.markdown(f"""
         <div class="section-card">
             <div class="section-header">Contexto</div>
             <div class="content-text">{context_content}</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # Análisis detallado
+        analisis_detallado = results.get("analisis_detallado", "No hay información de contexto disponible.")
+        st.markdown(f"""
+        <div class="section-card">
+            <div class="section-header">Contexto</div>
+            <div class="content-text">{analisis_detallado}</div>
         </div>
         """, unsafe_allow_html=True)
         
