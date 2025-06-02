@@ -3,47 +3,51 @@ from typing import Dict, Any
 
 def render_analysis_cards(results: Dict[str, Any]):
     """
-    Renderiza los resultados del análisis en tarjetas.
+    Renderiza los resultados del análisis en tarjetas con el nuevo diseño.
     
     Args:
         results: Resultados procesados del análisis
     """
-    st.markdown("## Resultados del Análisis")
+    st.markdown('<div class="section-title">Resultados del Análisis</div>', unsafe_allow_html=True)
     st.markdown("---")
     
     # Dividir la pantalla en dos columnas
     col1, col2 = st.columns(2)
     
-    # Introducción (columna 1)
     with col1:
-        st.markdown("### Introducción")
-        if results.get("introduction"):
-            st.markdown(results["introduction"])
-        else:
-            st.info("No hay información de introducción disponible.")
+        # Introducción
+        intro_content = results.get("introduction", "No hay información de introducción disponible.")
+        st.markdown(f"""
+        <div class="section-card">
+            <div class="section-header">Introducción</div>
+            <div class="content-text">{intro_content}</div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Contenido Principal
+        main_content = results.get("main_content", "No hay contenido principal disponible.")
+        st.markdown(f"""
+        <div class="section-card">
+            <div class="section-header">Contenido Principal</div>
+            <div class="content-text">{main_content}</div>
+        </div>
+        """, unsafe_allow_html=True)
     
-    # Contexto (columna 2)
     with col2:
-        st.markdown("### Contexto")
-        if results.get("context"):
-            st.markdown(results["context"])
-        else:
-            st.info("No hay información de contexto disponible.")
-    
-    st.markdown("---")
-    
-    # Contenido Principal (ancho completo)
-    st.markdown("### Contenido Principal")
-    if results.get("main_content"):
-        st.markdown(results["main_content"])
-    else:
-        st.info("No hay contenido principal disponible.")
-    
-    st.markdown("---")
-    
-    # Conclusión (ancho completo)
-    st.markdown("### Conclusión")
-    if results.get("conclusion"):
-        st.markdown(results["conclusion"])
-    else:
-        st.info("No hay conclusión disponible.")
+        # Contexto
+        context_content = results.get("context", "No hay información de contexto disponible.")
+        st.markdown(f"""
+        <div class="section-card">
+            <div class="section-header">Contexto</div>
+            <div class="content-text">{context_content}</div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Conclusión
+        conclusion_content = results.get("conclusion", "No hay conclusión disponible.")
+        st.markdown(f"""
+        <div class="section-card">
+            <div class="section-header">Conclusión</div>
+            <div class="content-text">{conclusion_content}</div>
+        </div>
+        """, unsafe_allow_html=True)

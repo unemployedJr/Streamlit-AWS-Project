@@ -53,9 +53,10 @@ class DocumentAnalysisAPI:
                 "client_id": self.client_id,
                 "client_secret": self.client_secret
             }
-            payload=urlencode(payload,quote_via=quote)
+            payload=urlencode(payload, quote_via = quote)
+            
             # Hacer la solicitud para obtener el token
-            response = requests.post(
+            response = requests.request('POST',
                 self.auth_url,
                 headers={"Content-Type": "application/x-www-form-urlencoded"},
                 data=payload,
@@ -100,7 +101,7 @@ class DocumentAnalysisAPI:
             }
             
             # Realizar la solicitud GET al API
-            response = requests.get(
+            response = requests.request('GET',
                 self.documents_url,
                 headers=headers,
                 timeout=self.timeout
@@ -113,16 +114,21 @@ class DocumentAnalysisAPI:
                 # Procesar los documentos recibidos
                 processed_documents = []
                 for doc in documents_data:
-                    # Extraer NUM_INTERNO_DOC y NOMBRE_DOCUMENTO
+                    # Usar NUM_INTERNO_DOC como ID principal
+                    doc_id = doc.get("NUM_INTERNO_DOC", "")
                     doc_name = doc.get("NOMBRE_DOCUMENTO", "")
-                    # Ejemplo: "2020029582 - RSASCM 074 ICCGSA.docx"
+                    
+                    # Extraer el número del documento del nombre para el campo "number"
                     doc_number = self._extract_document_number(doc_name)
-                    doc_id = self._extract_document_number(doc_name)
+                    
+                    # Si por alguna razón no hay NUM_INTERNO_DOC, usar el número extraído
+                    if not doc_id:
+                        doc_id = doc_number if doc_number else f"doc_{len(processed_documents)}"
+                    
                     processed_documents.append({
                         "id": doc_id,
                         "name": doc_name,
                         "number": doc_number,
-                        #"relevance": "100%"  # Valor por defecto, ajustar según necesidad
                     })
                 
                 return processed_documents
@@ -180,7 +186,7 @@ class DocumentAnalysisAPI:
             }
             
             # Realizar la solicitud POST al API
-            response = requests.post(
+            response = requests.request('POST',
                 self.generate_url,
                 json=payload,
                 headers=headers,
@@ -284,21 +290,24 @@ def load_available_documents():
     Returns:
         List[Dict]: Lista de documentos disponibles
     """
-    # Verificar si ya tenemos documentos cargados
-    if 'available_documents' in st.session_state and st.session_state.available_documents:
+    # Verificar si ya tenemos documentos cargados y válidos
+    if 'available_documents' in st.session_state and st.session_state.available_documents is not None and len(st.session_state.available_documents) > 0:
         return st.session_state.available_documents
     
     # Obtener documentos del API
-    with st.spinner("Cargando documentos disponibles..."):
-        api_client = st.session_state.api_client
-        documents = api_client.get_documents()
-        
-        if documents:
-            st.session_state.available_documents = documents
-            return documents
-        else:
-            st.warning("No se pudieron cargar los documentos. Verifique su conexión.")
-            return []
+    api_client = st.session_state.get('api_client')
+    if not api_client:
+        api_client = DocumentAnalysisAPI()
+        st.session_state.api_client = api_client
+    
+    documents = api_client.get_documents()
+    
+    if documents:
+        st.session_state.available_documents = documents
+        return documents
+    else:
+        st.session_state.available_documents = []
+        return []
 
 def analyze_selected_documents(selected_docs: List[Dict[str, Any]]) -> Tuple[bool, Optional[Dict[str, Any]]]:
     """
@@ -322,13 +331,12 @@ def analyze_selected_documents(selected_docs: List[Dict[str, Any]]) -> Tuple[boo
         return False, None
     
     # Enviar solicitud de análisis
-    with st.spinner("Generando análisis de documentos..."):
-        api_client = st.session_state.api_client
-        results = api_client.generate_analysis(document_numbers)
-        
-        if results:
-            # Procesar resultados para mostrarlos en la UI
-            processed_results = api_client.process_analysis_results(results)
-            return True, processed_results
-        else:
-            return False, None
+    api_client = st.session_state.api_client
+    results = api_client.generate_analysis(document_numbers)
+    
+    if results:
+        # Procesar resultados para mostrarlos en la UI
+        processed_results = api_client.process_analysis_results(results)
+        return True, processed_results
+    else:
+        return False, None

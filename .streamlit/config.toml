@@ -1,8 +1,8 @@
 [theme]
-primaryColor="#2c84dd"
-backgroundColor="#f0f2f6"
-secondaryBackgroundColor="#e6eaf1"
-textColor="#262730"
+primaryColor="#3498DB"           # Azul corporativo
+backgroundColor="#ECF0F1"        # Fondo muy claro
+secondaryBackgroundColor="#FFFFFF"  # Fondo de tarjetas
+textColor="#34495E"             # Gris oscuro para texto principal
 font="sans serif"
 
 [server]
