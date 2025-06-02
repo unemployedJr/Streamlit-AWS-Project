@@ -16,11 +16,30 @@ from components.analysis_cards import render_analysis_cards
 from utils.session import initialize_session_state, update_analysis_state, clear_selection
 from utils.rest_api import initialize_api_client, load_available_documents, analyze_selected_documents
 
+# Función de depuración
+def debug_api_results():
+    """
+    Función de ayuda para mostrar información de depuración sobre los resultados de la API.
+    """
+    if st.session_state.get('debug_mode', False):
+        with st.expander("Debug: API Results"):
+            if st.session_state.api_results:
+                st.json(st.session_state.api_results)
+            else:
+                st.info("No hay resultados de API disponibles")
+            
+            st.write("Analysis State:", st.session_state.analysis_state)
+            st.write("Selected Documents:", len(st.session_state.selected_documents))
+
 # Inicializar estado de la sesión
 initialize_session_state()
 
 # Inicializar cliente de API
 initialize_api_client()
+
+# Habilitar modo debug con un parámetro de URL: ?debug=true
+if st.query_params.get('debug', 'false').lower() == 'true':
+    st.session_state.debug_mode = True
 
 # Cargar documentos disponibles (solo si no están ya cargados o son None)
 if 'available_documents' not in st.session_state or st.session_state.available_documents is None or len(st.session_state.available_documents) == 0:
@@ -42,6 +61,9 @@ with col2:
         help="Generar análisis completo de los documentos seleccionados",
         type="primary"
     )
+
+# Mostrar información de depuración
+debug_api_results()
 
 # Procesar análisis cuando se hace clic en el botón
 if generate_clicked and selected_documents:
@@ -69,7 +91,13 @@ if generate_clicked and selected_documents:
             
             # Guardar resultados
             st.session_state.api_results = results
-            st.success("¡Análisis completado con éxito!")
+            
+            # Mostrar mensaje de éxito ANTES de rerun
+            success_placeholder = st.empty()
+            success_placeholder.success("¡Análisis completado con éxito!")
+            
+            # Forzar rerun para mostrar los resultados
+            st.rerun()
         else:
             # Actualizar estado a "error"
             update_analysis_state({
@@ -82,12 +110,24 @@ if generate_clicked and selected_documents:
             st.error("No se pudo completar el análisis. Por favor, intente nuevamente.")
 
 # Mostrar resultados si existen
-if st.session_state.api_results and st.session_state.analysis_state["status"] == "complete":
+if st.session_state.api_results is not None:
     st.markdown("---")
-    render_analysis_cards(st.session_state.api_results)
-
-# Botón para reiniciar (limpiar selección)
-if st.session_state.api_results:
+    
+    # Mostrar información para depuración
+    if st.session_state.get('debug_mode', False):
+        st.write("Resultados disponibles para mostrar. Estado:", st.session_state.analysis_state["status"])
+    
+    try:
+        # Intentar usar la visualización estilizada
+        from components.analysis_cards import render_analysis_cards
+        render_analysis_cards(st.session_state.api_results)
+    except Exception as e:
+        # Si falla, usar la visualización alternativa simple
+        st.error(f"Error al renderizar tarjetas estilizadas: {str(e)}")
+        from components.analysis_cards_alternate import render_analysis_cards_simple
+        render_analysis_cards_simple(st.session_state.api_results)
+    
+    # Botón para reiniciar (limpiar selección)
     st.markdown("---")
     col1, col2, col3 = st.columns([2, 1, 2])
     with col2:

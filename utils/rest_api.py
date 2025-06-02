@@ -217,79 +217,60 @@ class DocumentAnalysisAPI:
             st.error(f"Error inesperado: {str(e)}")
             return None
     
-    def process_analysis_results(self, results: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Procesa los resultados del análisis para mostrarlos en la UI.
+def process_analysis_results(self, results: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Procesa los resultados del análisis para mostrarlos en la UI.
+    
+    Args:
+        results: Resultados del análisis
         
-        Args:
-            results: Resultados del análisis
-            
-        Returns:
-            Dict: Resultados procesados con las secciones para mostrar
-        """
-        # Inicializar estructura de resultados procesados
-        processed_results = {
-            "introduction": "",
-            "contexto": "",
-            "resumenes_ejecutivos":"",
-            "analisis_detallado":"",
-            "comparacion_documentos":"",
-            "conclusion": ""
-        }
+    Returns:
+        Dict: Resultados procesados con las secciones para mostrar
+    """
+    # Inicializar estructura de resultados procesados
+    processed_results = {
+        "introduction": "",
+        "contexto": "",
+        "resumenes_ejecutivos": "",
+        "analisis_detallado": "",
+        "comparacion_documentos": "",
+        "conclusion": ""
+    }
+    
+    # Registrar los resultados recibidos para depuración
+    print(f"Resultados recibidos: {json.dumps(results, indent=2)}")
+    
+    # Procesar las secciones según la estructura esperada
+    if "sections" in results:
+        sections = results["sections"]
         
-        # Procesar las secciones según la estructura de la Fig4
-        if "sections" in results:
-            sections = results["sections"]
-            
-            # Procesar introducción
-            if "introduction" in sections and len(sections["introduction"]) > 0:
-                intro_texts = []
-                for intro_item in sections["introduction"]:
-                    if "text" in intro_item:
-                        intro_texts.append(intro_item["text"])
-                processed_results["introduction"] = "\n\n".join(intro_texts)
-            
-            # Procesar contexto (si existe)
-            if "contexto" in sections and len(sections["contexto"]) > 0:
-                context_texts = []
-                for context_item in sections["contexto"]:
-                    if "text" in context_item:
-                        context_texts.append(context_item["text"])
-                processed_results["contexto"] = "\n\n".join(context_texts)
-            
-            # Procesar contenido principal (si existe)
-            if "resumenes_ejecutivos" in sections and len(sections["resumenes_ejecutivos"]) > 0:
-                main_texts = []
-                for main_item in sections["resumenes_ejecutivos"]:
-                    if "text" in main_item:
-                        main_texts.append(main_item["text"])
-                processed_results["resumenes_ejecutivos"] = "\n\n".join(main_texts)
-
-                     # Procesar contenido principal (si existe)
-            if "analisis_detallado" in sections and len(sections["analisis_detallado"]) > 0:
-                main_texts = []
-                for main_item in sections["analisis_detallado"]:
-                    if "text" in main_item:
-                        main_texts.append(main_item["text"])
-                processed_results["analisis_detallado"] = "\n\n".join(main_texts)
-
-                     # Procesar contenido principal (si existe)
-            if "comparacion_documentos" in sections and len(sections["comparacion_documentos"]) > 0:
-                main_texts = []
-                for main_item in sections["comparacion_documentos"]:
-                    if "text" in main_item:
-                        main_texts.append(main_item["text"])
-                processed_results["comparacion_documentos"] = "\n\n".join(main_texts)
-            
-            # Procesar conclusión (si existe)
-            if "conclusion" in sections and len(sections["conclusion"]) > 0:
-                conclusion_texts = []
-                for conclusion_item in sections["conclusion"]:
-                    if "text" in conclusion_item:
-                        conclusion_texts.append(conclusion_item["text"])
-                processed_results["conclusion"] = "\n\n".join(conclusion_texts)
-        
-        return processed_results
+        # Procesar cada sección disponible
+        for section_name in processed_results.keys():
+            if section_name in sections and isinstance(sections[section_name], list) and len(sections[section_name]) > 0:
+                section_texts = []
+                for item in sections[section_name]:
+                    if isinstance(item, dict) and "text" in item:
+                        section_texts.append(item["text"])
+                    elif isinstance(item, str):
+                        section_texts.append(item)
+                processed_results[section_name] = "\n\n".join(section_texts)
+    
+    # Si no hay estructura de sections, intentar un formato alternativo
+    elif isinstance(results, dict):
+        for section_name in processed_results.keys():
+            if section_name in results:
+                if isinstance(results[section_name], list):
+                    texts = []
+                    for item in results[section_name]:
+                        if isinstance(item, dict) and "text" in item:
+                            texts.append(item["text"])
+                        elif isinstance(item, str):
+                            texts.append(item)
+                    processed_results[section_name] = "\n\n".join(texts)
+                elif isinstance(results[section_name], str):
+                    processed_results[section_name] = results[section_name]
+    
+    return processed_results
 
 # Funciones para inicializar y utilizar en la aplicación
 
@@ -342,19 +323,47 @@ def analyze_selected_documents(selected_docs: List[Dict[str, Any]]) -> Tuple[boo
         return False, None
     
     # Extraer números de documentos
-    document_numbers = [doc["number"] for doc in selected_docs if "number" in doc]
+    document_numbers = [doc["number"] for doc in selected_docs if "number" in doc and doc["number"]]
     
     if not document_numbers:
         st.warning("Los documentos seleccionados no tienen números válidos.")
         return False, None
     
-    # Enviar solicitud de análisis
-    api_client = st.session_state.api_client
-    results = api_client.generate_analysis(document_numbers)
-    
-    if results:
-        # Procesar resultados para mostrarlos en la UI
-        processed_results = api_client.process_analysis_results(results)
-        return True, processed_results
-    else:
+    try:
+        # Enviar solicitud de análisis
+        api_client = st.session_state.api_client
+        
+        # Mostrar información sobre los documentos que se enviarán
+        st.write(f"Enviando documentos para análisis: {document_numbers}")
+        
+        results = api_client.generate_analysis(document_numbers)
+        
+        if results:
+            # Mostrar estructura de los resultados recibidos (en modo debug)
+            if st.session_state.get('debug_mode', False):
+                st.write("Estructura de resultados recibidos:", type(results))
+                st.json(results)
+            
+            # Validar que los resultados tienen el formato esperado
+            if not isinstance(results, dict):
+                st.error(f"Error: Formato de respuesta inesperado del API. Se esperaba un diccionario, se recibió: {type(results)}")
+                return False, None
+            
+            # Procesar resultados para mostrarlos en la UI
+            processed_results = api_client.process_analysis_results(results)
+            
+            # Verificar que se procesaron correctamente
+            if not processed_results:
+                st.error("Error: No se pudieron procesar los resultados del análisis.")
+                return False, None
+                
+            return True, processed_results
+        else:
+            st.error("Error: No se recibieron resultados del API.")
+            return False, None
+    except Exception as e:
+        st.error(f"Error inesperado al analizar documentos: {str(e)}")
+        import traceback
+        if st.session_state.get('debug_mode', False):
+            st.write("Traceback:", traceback.format_exc())
         return False, None
