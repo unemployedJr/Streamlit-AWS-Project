@@ -37,7 +37,7 @@ def initialize_session_state():
 
 def update_analysis_state(state: Dict[str, Any]):
     """
-    Actualiza el estado del análisis y dispara un rerun si es necesario.
+    Actualiza el estado del análisis SIN causar rerun automático.
     
     Args:
         state: Diccionario con el nuevo estado
@@ -46,10 +46,6 @@ def update_analysis_state(state: Dict[str, Any]):
     for key, value in state.items():
         if key in st.session_state.analysis_state:
             st.session_state.analysis_state[key] = value
-    
-    # Forzar rerun para actualizar la UI si el estado cambió significativamente
-    if state.get("status") in ["complete", "error"]:
-        st.rerun()
 
 def add_document(document: Dict[str, Any]) -> bool:
     """

@@ -69,7 +69,7 @@ if generate_clicked and selected_documents:
             
             # Guardar resultados
             st.session_state.api_results = results
-            st.success("¡Análisis completado con éxito!")
+          #  st.success("¡Análisis completado con éxito!")
         else:
             # Actualizar estado a "error"
             update_analysis_state({
