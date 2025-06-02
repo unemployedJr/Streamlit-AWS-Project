@@ -148,14 +148,41 @@ def render_header():
             box-shadow: none;
         }
 
-        /* Estilos para selectbox */
+        /* Estilos mejorados para selectbox - TAMAÑO PERFECTO */
         .stSelectbox > div > div {
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            font-family: 'Inter', sans-serif;
-            color: var(--text-dark);
-            padding: 0.2rem 0.5rem;
-            box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+            border-radius: 8px !important;
+            border: 1px solid var(--border-color) !important;
+            font-family: 'Inter', sans-serif !important;
+            color: var(--text-dark) !important;
+            padding: 0.5rem 0.75rem !important;
+            min-height: 40px !important;
+            height: auto !important;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.05) !important;
+            font-size: 0.95rem !important;
+            line-height: 1.3 !important;
+        }
+        
+        .stSelectbox > div > div > div {
+            padding: 0.3rem 0 !important;
+            line-height: 1.3 !important;
+            font-size: 0.95rem !important;
+        }
+        
+        /* Específicamente para el dropdown interno */
+        .stSelectbox select {
+            padding: 0.5rem 0.75rem !important;
+            min-height: 40px !important;
+            font-size: 0.95rem !important;
+            line-height: 1.3 !important;
+        }
+        
+        /* Para el texto del placeholder */
+        .stSelectbox > div > div[data-baseweb="select"] > div {
+            padding: 0.5rem 0.75rem !important;
+            min-height: 40px !important;
+            display: flex !important;
+            align-items: center !important;
+            font-size: 0.95rem !important;
         }
         
         .stSelectbox > label {

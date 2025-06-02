@@ -46,6 +46,8 @@ def update_analysis_state(state: Dict[str, Any]):
     for key, value in state.items():
         if key in st.session_state.analysis_state:
             st.session_state.analysis_state[key] = value
+    
+    # NO hacer rerun automático - esto estaba causando el problema
 
 def add_document(document: Dict[str, Any]) -> bool:
     """
