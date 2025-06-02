@@ -25,10 +25,10 @@ def render_analysis_cards(results: Dict[str, Any]):
         """, unsafe_allow_html=True)
         
         # Resumenes ejecutivos
-        resumenes_ejecutivos = results.get("resumenes_ejecutivos", "No hay contenido principal disponible.")
+        resumenes_ejecutivos = results.get("resumenes_ejecutivos", "No hay resúmenes ejecutivos disponibles.")
         st.markdown(f"""
         <div class="section-card">
-            <div class="section-header">Contenido Principal</div>
+            <div class="section-header">Resúmenes Ejecutivos</div>
             <div class="content-text">{resumenes_ejecutivos}</div>
         </div>
         """, unsafe_allow_html=True)
@@ -37,7 +37,7 @@ def render_analysis_cards(results: Dict[str, Any]):
         comparacion_documentos = results.get("comparacion_documentos", "No hay contenido principal disponible.")
         st.markdown(f"""
         <div class="section-card">
-            <div class="section-header">Contenido Principal</div>
+            <div class="section-header">Comparación de Documentos</div>
             <div class="content-text">{comparacion_documentos}</div>
         </div>
         """, unsafe_allow_html=True)
@@ -56,7 +56,7 @@ def render_analysis_cards(results: Dict[str, Any]):
         analisis_detallado = results.get("analisis_detallado", "No hay información de contexto disponible.")
         st.markdown(f"""
         <div class="section-card">
-            <div class="section-header">Contexto</div>
+            <div class="section-header">Análisis detallado</div>
             <div class="content-text">{analisis_detallado}</div>
         </div>
         """, unsafe_allow_html=True)
