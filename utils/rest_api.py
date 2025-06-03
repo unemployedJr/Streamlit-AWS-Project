@@ -234,7 +234,8 @@ class DocumentAnalysisAPI:
             "resumenes_ejecutivos":"",
             "analisis_detallado":"",
             "comparacion_documentos":"",
-            "conclusion": ""
+            "conclusion": "",
+            "referencias_data": []  # NUEVA LÍNEA - CLAVE PARA REFERENCIAS
         }
         
         # Procesar las secciones según la estructura de la Fig4
@@ -265,7 +266,7 @@ class DocumentAnalysisAPI:
                         main_texts.append(main_item["text"])
                 processed_results["resumenes_ejecutivos"] = "\n\n".join(main_texts)
 
-                     # Procesar contenido principal (si existe)
+            # Procesar contenido principal (si existe)
             if "analisis_detallado" in sections and len(sections["analisis_detallado"]) > 0:
                 main_texts = []
                 for main_item in sections["analisis_detallado"]:
@@ -273,7 +274,7 @@ class DocumentAnalysisAPI:
                         main_texts.append(main_item["text"])
                 processed_results["analisis_detallado"] = "\n\n".join(main_texts)
 
-                     # Procesar contenido principal (si existe)
+            # Procesar contenido principal (si existe)
             if "comparacion_documentos" in sections and len(sections["comparacion_documentos"]) > 0:
                 main_texts = []
                 for main_item in sections["comparacion_documentos"]:
@@ -288,6 +289,31 @@ class DocumentAnalysisAPI:
                     if "text" in conclusion_item:
                         conclusion_texts.append(conclusion_item["text"])
                 processed_results["conclusion"] = "\n\n".join(conclusion_texts)
+        
+        # NUEVO CÓDIGO PARA PROCESAR REFERENCIAS
+        referencias_data = None
+        
+        # Buscar referencias en diferentes ubicaciones posibles
+        locations = [
+            results.get("referencia"),
+            results.get("referencias"), 
+            results.get("sections", {}).get("referencia") if "sections" in results else None,
+            results.get("sections", {}).get("referencias") if "sections" in results else None
+        ]
+        
+        # Buscar en cada ubicación
+        for location in locations:
+            if isinstance(location, list) and len(location) > 0:
+                referencias_data = location
+                break
+        
+        # Guardar las referencias encontradas
+        if referencias_data:
+            processed_results["referencias_data"] = referencias_data
+            print(f"DEBUG: Se encontraron {len(referencias_data)} referencias")
+        else:
+            processed_results["referencias_data"] = []
+            print("DEBUG: No se encontraron referencias")
         
         return processed_results
 

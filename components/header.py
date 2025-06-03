@@ -241,6 +241,21 @@ def render_header():
             border: none;
             border-top: 1px solid var(--border-color);
         }
+        /* Estilos específicos para la sección de Referencias */
+        .references-card {
+            background-color: var(--reference-bg, #F8F9FA);
+            border: 2px solid var(--reference-border, #E3E7EA);
+            margin: 2rem 0;
+            min-height: 200px;
+            max-height: 600px;
+        }
+        
+        .references-text {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: var(--text-dark);
+        }
     </style>
     """, unsafe_allow_html=True)
     
