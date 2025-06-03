@@ -70,66 +70,50 @@ def render_analysis_cards(results: Dict[str, Any]):
         </div>
         """, unsafe_allow_html=True)
 
-    # ======= SECCIÓN DE REFERENCIAS CON STREAMLIT NATIVO =======
+    # ======= SECCIÓN DE REFERENCIAS SIMPLE =======
     st.markdown("---")
-    
-    # Contenedor principal de referencias
-    st.markdown("""
-    <div style="background-color: #FFFFFF; border: 1px solid #BDC3C7; border-radius: 8px; padding: 0; margin: 1rem 0; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-        <div style="background-color: #2C3E50; color: white; padding: 0.85rem 1.5rem; margin: 0; border-radius: 7px 7px 0 0; font-weight: 600; text-align: center; font-family: 'Inter', sans-serif; font-size: 1.2rem;">
-            📚 Referencias
-        </div>
-    """, unsafe_allow_html=True)
     
     # Obtener datos de referencias
     referencias_data = results.get("referencias_data", [])
     
     if referencias_data and isinstance(referencias_data, list) and len(referencias_data) > 0:
-        # Container para el contenido
-        with st.container():
-            #st.markdown(f"""
-            #<div style="padding: 1rem; background-color: #2C3E50; color: white; text-align: center; font-weight: 600; margin: 0 1.5rem 1.5rem 1.5rem; border-radius: 8px;">
-             #   📚 Total de Referencias Encontradas: {len(referencias_data)}
-            #</div>
-            #""", unsafe_allow_html=True)
+        # Crear contenido de referencias como texto simple
+        referencias_content = ""
+        
+        for i, ref in enumerate(referencias_data, 1):
+            tipo_doc = ref.get('tipo_doc', 'Documento')
+            num_interno = ref.get('num_interno_doc', 'N/A')
+            area = ref.get('area', 'N/A')
+            fecha = ref.get('fecha_emision', 'N/A')
+            expediente = ref.get('num_expediente', 'N/A')
+            viddoc = ref.get('viddoc', 'N/A')
             
-            # Mostrar cada referencia usando componentes nativos
-            for i, ref in enumerate(referencias_data, 1):
-                tipo_doc = ref.get('tipo_doc', 'Documento')
-                num_interno = ref.get('num_interno_doc', 'N/A')
-                area = ref.get('area', 'N/A')
-                fecha = ref.get('fecha_emision', 'N/A')
-                expediente = ref.get('num_expediente', 'N/A')
-                viddoc = ref.get('viddoc', 'N/A')
-                
-                # Usar un expander para cada referencia
-                with st.expander(f"📄 Referencia {i}: {tipo_doc} - N° {num_interno}", expanded=True):
-                    
-                    # Crear columnas para mostrar la información
-                    ref_col1, ref_col2 = st.columns(2)
-                    
-                    with ref_col1:
-                        st.markdown(f"**🏢 Área Emisora:**")
-                        st.write(area)
-                        
-                        st.markdown(f"**📅 Fecha de Emisión:**")
-                        st.write(fecha)
-                    
-                    with ref_col2:
-                        st.markdown(f"**📋 N° de Expediente:**")
-                        st.write(expediente)
-                        
-                        st.markdown(f"**🔗 ID del Documento:**")
-                        st.code(viddoc)
+            # Agregar cada referencia como texto simple
+            referencias_content += f"""
+Referencia {i}: {tipo_doc} - N° {num_interno}
+
+Área Emisora: {area}
+Fecha de Emisión: {fecha}
+N° de Expediente: {expediente}
+ID del Documento: {viddoc}
+
+"""
+            if i < len(referencias_data):
+                referencias_content += "---\n\n"
+        
+        # Mostrar usando el mismo formato que las otras secciones
+        st.markdown(f"""
+        <div class="section-card">
+            <div class="section-header">Referencias</div>
+            <div class="content-text">{referencias_content}</div>
+        </div>
+        """, unsafe_allow_html=True)
+        
     else:
         # Mensaje cuando no hay referencias
-        with st.container():
-            st.markdown("""
-            <div style="padding: 3rem; text-align: center; color: #7F8C8D; font-style: italic;">
-                📚 No se encontraron referencias en la respuesta del análisis.<br><br>
-                <small>Las referencias aparecerán aquí cuando estén disponibles en los resultados del API.</small>
-            </div>
-            """, unsafe_allow_html=True)
-    
-    # Cerrar el contenedor principal
-    st.markdown("</div>", unsafe_allow_html=True)
+        st.markdown("""
+        <div class="section-card">
+            <div class="section-header">Referencias</div>
+            <div class="content-text">No se encontraron referencias en la respuesta del análisis.</div>
+        </div>
+        """, unsafe_allow_html=True)

@@ -310,7 +310,6 @@ class DocumentAnalysisAPI:
         # Guardar las referencias encontradas
         if referencias_data:
             processed_results["referencias_data"] = referencias_data
-            print(f"DEBUG: Se encontraron {len(referencias_data)} referencias")
         else:
             processed_results["referencias_data"] = []
             print("DEBUG: No se encontraron referencias")
